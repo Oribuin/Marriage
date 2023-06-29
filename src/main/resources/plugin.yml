@@ -1,0 +1,10 @@
+name: Marriage
+main: xyz.oribuin.marriage.MarriagePlugin
+version: '@version@'
+api-version: 1.16
+author: Oribuin
+description: A simple marriage plugin.
+softdepend:
+  - Vault
+  - PlaceholderAPI
+  - HeadDatabase
