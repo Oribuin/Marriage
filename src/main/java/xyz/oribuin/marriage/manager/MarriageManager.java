@@ -22,7 +22,6 @@ public class MarriageManager extends Manager {
             .expireAfterWrite(Setting.REQUEST_TIMEOUT.getInt(), TimeUnit.SECONDS)
             .build();
 
-    private final List<MarriagePair> requests = new ArrayList<>();
 
     public MarriageManager(RosePlugin rosePlugin) {
         super(rosePlugin);
