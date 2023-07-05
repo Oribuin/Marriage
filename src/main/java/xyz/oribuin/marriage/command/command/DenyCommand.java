@@ -8,16 +8,15 @@ import dev.rosewood.rosegarden.command.framework.annotation.Optional;
 import dev.rosewood.rosegarden.command.framework.annotation.RoseExecutable;
 import dev.rosewood.rosegarden.utils.StringPlaceholders;
 import org.bukkit.entity.Player;
-import xyz.oribuin.marriage.manager.ConfigurationManager.Setting;
 import xyz.oribuin.marriage.manager.LocaleManager;
 import xyz.oribuin.marriage.manager.MarriageManager;
 import xyz.oribuin.marriage.model.Couple;
 
 import java.util.List;
 
-public class AcceptCommand extends RoseCommand {
+public class DenyCommand extends RoseCommand {
 
-    public AcceptCommand(RosePlugin rosePlugin, RoseCommandWrapper parent) {
+    public DenyCommand(RosePlugin rosePlugin, RoseCommandWrapper parent) {
         super(rosePlugin, parent);
     }
 
@@ -29,54 +28,40 @@ public class AcceptCommand extends RoseCommand {
 
         List<Couple> pairs = manager.getRequests(player.getUniqueId()); // Get the requests sent to the player.
 
-        if (from == null && pairs.size() == 1) {
-            from = pairs.get(0).getSecondary().getCachedPlayer();
-        }
-
         if (from != null && pairs.size() > 1) {
-            Player finalFrom = from;
-            pairs.removeIf(pair -> pair.isEither(player.getUniqueId()) && !pair.isEither(finalFrom.getUniqueId()));
+            pairs.removeIf(pair -> pair.isEither(player.getUniqueId()) && !pair.isEither(from.getUniqueId()));
         }
-
-
-
-        StringPlaceholders placeholders = StringPlaceholders.of("player", player.getName(), "target", from == null ? "none" : from.getName());
 
         Couple pair = pairs.stream().findFirst().orElse(null);
         if (pair == null) {
-            locale.sendMessage(player, "command-accept-no-request", placeholders);
-            return;
-        }
-
-        if (from == null && pair.getSecondary().getCachedPlayer() == null) {
-            locale.sendMessage(player, "command-accept-no-request", placeholders);
+            locale.sendMessage(player, "command-deny-no-request", StringPlaceholders.of("player", from == null ? "none" : from.getName()));
             return;
         }
 
         manager.removeRequest(pair.getPrimary().getUUID()); // Remove the request.
-        manager.marry(pair);
 
-        locale.sendMessage(player, "command-accept-success", StringPlaceholders.of("other", from == null ? "none" : from.getName()));
-        locale.sendMessage(from, "command-accept-success", StringPlaceholders.of("other", player.getName()));
+        StringPlaceholders placeholders = StringPlaceholders.of("player", player.getName(), "target", from == null ? "none" : from.getName());
 
-        if (Setting.MARRIAGE_ANNOUNCEMENT.getBoolean())
-            locale.sendAll("command-accept-announce", placeholders);
+        locale.sendMessage(player, "command-deny-success", StringPlaceholders.of("other", from == null ? "none" : from.getName()));
+        if (from != null) {
+            locale.sendMessage(from, "command-deny-rejected", StringPlaceholders.of("other", player.getName()));
+        }
 
     }
 
     @Override
     protected String getDefaultName() {
-        return "accept";
+        return "deny";
     }
 
     @Override
     public String getDescriptionKey() {
-        return "command-accept-description";
+        return "command-deny-description";
     }
 
     @Override
     public String getRequiredPermission() {
-        return "marriage.command.accept";
+        return "marriage.command.deny";
     }
 
     @Override

@@ -13,10 +13,14 @@ public class ConfigurationManager extends AbstractConfigurationManager {
         MARRIAGE_COST("marriage-cost", 1000, "The cost of marriage."),
         DIVORCE_COST("divorce-cost", 500, "The cost of divorce."),
 
+        MARRIAGE_ANNOUNCEMENT("marriage-announcement", true, "Whether or not to announce marriages."),
+        DIVORCE_ANNOUNCEMENT("divorce-announcement", true, "Whether or not to announce divorces."),
+
+
         // smooch
         KISS_ENABLED("kissing.enabled", true, "Whether or not players can kiss their partners."),
         KISS_COOLDOWN("kissing.cooldown", 60, "The cooldown in seconds between kisses."),
-        KISS_PARTICLES("kissing.particles", true, "Whether or not particles should be shown when kissing."),
+        KISS_PARTICLES("kissing.particles", 15, "The amount of particles to spawn when kissing."),
 
         // marriage request yesyes
         REQUEST_TIMEOUT("request.timeout", 60, "The timeout in seconds for marriage requests."),

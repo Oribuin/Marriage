@@ -22,14 +22,13 @@ public class PartnerArgumentHandler extends RoseCommandArgumentHandler<Partner> 
     @Override
     protected Partner handleInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) throws HandledArgumentException {
         String input = argumentParser.next();
-        if (!(argumentParser.getContext() instanceof Player))
+        if (!(argumentParser.getContext() instanceof Player player))
             throw new HandledArgumentException("only-player");
 
         Partner partner = this.rosePlugin.getManager(DataManager.class)
-                .getPartners(((Player) argumentParser.getContext()).getUniqueId())
+                .getPartners(player.getUniqueId())
                 .stream()
-                .filter(p -> p.getName() != null)
-                .filter(p -> p.getName().equalsIgnoreCase(input))
+                .filter(p -> p.getName() != null && p.getName().equalsIgnoreCase(input))
                 .findFirst()
                 .orElse(null);
 
@@ -41,8 +40,12 @@ public class PartnerArgumentHandler extends RoseCommandArgumentHandler<Partner> 
 
     @Override
     protected List<String> suggestInternal(RoseCommandArgumentInfo argumentInfo, ArgumentParser argumentParser) {
+        argumentParser.next();
+
+        if (!(argumentParser.getContext() instanceof Player player))
+            return List.of();
         return this.rosePlugin.getManager(DataManager.class)
-                .getPartners(((Player) argumentParser.getContext()).getUniqueId())
+                .getPartners(player.getUniqueId())
                 .stream()
                 .map(Partner::getName)
                 .filter(Objects::nonNull)

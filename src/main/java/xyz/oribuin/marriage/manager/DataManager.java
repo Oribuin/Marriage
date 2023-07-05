@@ -5,7 +5,7 @@ import dev.rosewood.rosegarden.database.DataMigration;
 import dev.rosewood.rosegarden.manager.AbstractDataManager;
 import org.jetbrains.annotations.NotNull;
 import xyz.oribuin.marriage.database.migration._1_CreateInitialTables;
-import xyz.oribuin.marriage.model.MarriagePair;
+import xyz.oribuin.marriage.model.Couple;
 import xyz.oribuin.marriage.model.Partner;
 
 import java.sql.PreparedStatement;
@@ -18,29 +18,33 @@ import java.util.UUID;
 
 public class DataManager extends AbstractDataManager {
 
-    private final Set<MarriagePair> cachedPairs = new HashSet<>();
+    private final Set<Couple> cachedPairs = new HashSet<>();
 
     public DataManager(RosePlugin rosePlugin) {
         super(rosePlugin);
     }
 
-    @Override
-    public void reload() {
-        super.reload();
-
+    public void loadPairs() {
         this.cachedPairs.clear();
+
         this.async(() -> this.databaseConnector.connect(connection -> {
-            final String query = "SELECT * FROM `" + this.getTablePrefix() + "marriages`";
+            final String query = "SELECT * FROM `" + this.getTablePrefix() + "couples`";
+
             try (PreparedStatement statement = connection.prepareStatement(query)) {
-                ResultSet result = statement.executeQuery();
-                while (result.next()) {
-                    UUID primary = UUID.fromString(result.getString("primary"));
-                    UUID secondary = UUID.fromString(result.getString("secondary"));
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    while (resultSet.next()) {
+                        final UUID primary = UUID.fromString(resultSet.getString("primary"));
+                        final UUID secondary = UUID.fromString(resultSet.getString("secondary"));
 
-                    MarriagePair pair = new MarriagePair(primary, secondary);
-                    pair.setMarriedAt(result.getLong("married_at"));
+                        final Couple pair = new Couple(
+                                primary,
+                                secondary
+                        );
 
-                    this.cachedPairs.add(pair);
+                        pair.setMarriedAt(resultSet.getLong("married_at"));
+
+                        this.cachedPairs.add(pair);
+                    }
                 }
             }
         }));
@@ -51,11 +55,11 @@ public class DataManager extends AbstractDataManager {
      *
      * @param pair The pair to create
      */
-    public void create(@NotNull MarriagePair pair) {
+    public void create(@NotNull Couple pair) {
         this.cachedPairs.add(pair);
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            final String sql = "INSERT INTO `" + this.getTablePrefix() + "marriages` (`primary`, `secondary`, `married_at`) VALUES (?, ?, ?)";
+            final String sql = "INSERT INTO `" + this.getTablePrefix() + "couples` (`primary`, `secondary`, `married_at`) VALUES (?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, pair.getPrimary().getUUID().toString());
                 statement.setString(2, pair.getSecondary().getUUID().toString());
@@ -70,11 +74,11 @@ public class DataManager extends AbstractDataManager {
      *
      * @param pair The pair to delete
      */
-    public void delete(@NotNull MarriagePair pair) {
+    public void delete(@NotNull Couple pair) {
         this.cachedPairs.remove(pair);
 
         this.async(() -> this.databaseConnector.connect(connection -> {
-            final String sql = "DELETE FROM `" + this.getTablePrefix() + "marriages` WHERE `primary` = ? AND `secondary` = ?";
+            final String sql = "DELETE FROM `" + this.getTablePrefix() + "couples` WHERE `primary` = ? AND `secondary` = ?";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, pair.getPrimary().getUUID().toString());
                 statement.setString(2, pair.getPrimary().getUUID().toString());
@@ -118,7 +122,7 @@ public class DataManager extends AbstractDataManager {
      *
      * @return The cached marriage pairs
      */
-    public Set<MarriagePair> getCachedPairs() {
+    public Set<Couple> getCachedPairs() {
         return this.cachedPairs;
     }
 

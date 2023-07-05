@@ -15,7 +15,7 @@ public class _1_CreateInitialTables extends DataMigration {
 
     @Override
     public void migrate(DatabaseConnector connector, Connection connection, String tablePrefix) throws SQLException {
-        final String marriageTable = "CREATE TABLE IF NOT EXISTS `" + tablePrefix + "` (" +
+        final String marriageTable = "CREATE TABLE IF NOT EXISTS `" + tablePrefix + "couples` (" +
                 "`primary` VARCHAR(36) NOT NULL," +
                 "`secondary` VARCHAR(36) NOT NULL," +
                 "`married_at` LONG NOT NULL DEFAULT 0)";
@@ -23,6 +23,7 @@ public class _1_CreateInitialTables extends DataMigration {
         try (PreparedStatement statement = connection.prepareStatement(marriageTable)) {
             statement.executeUpdate();
         }
+
     }
 
 }

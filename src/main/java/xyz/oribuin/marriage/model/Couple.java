@@ -1,19 +1,39 @@
 package xyz.oribuin.marriage.model;
 
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import xyz.oribuin.marriage.manager.ConfigurationManager.Setting;
+
 import java.util.UUID;
 
-public class MarriagePair {
+public class Couple {
 
     private final Partner primary;
     private final Partner secondary;
     private long marriedAt;
     private long lastKissed;
 
-    public MarriagePair(UUID primary, UUID secondary) {
+    public Couple(UUID primary, UUID secondary) {
         this.primary = new Partner(primary);
         this.secondary = new Partner(secondary);
         this.marriedAt = System.currentTimeMillis();
         this.lastKissed = 0;
+    }
+
+    /**
+     * now kish :3
+     *
+     * @param location the location to kiss
+     */
+    public void kiss(Location location) {
+        if (!Setting.KISS_ENABLED.getBoolean() || Setting.KISS_PARTICLES.getInt() <= 0)
+            return;
+
+        if (System.currentTimeMillis() - this.lastKissed < (Setting.KISS_COOLDOWN.getInt() * 1000L))
+            return;
+
+        this.lastKissed = System.currentTimeMillis();
+        location.getWorld().spawnParticle(Particle.HEART, location, Setting.KISS_PARTICLES.getInt(), 0.5, 0.5, 0.5, 0);
     }
 
     /**

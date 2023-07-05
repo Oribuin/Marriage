@@ -56,7 +56,7 @@ dependencies {
 shadowJar {
     archiveClassifier.set(null)
 
-    relocate("dev.rosewood.rosegarden", "${project.group}.customenchants.rosegarden")
+    relocate("dev.rosewood.rosegarden", "${project.group}.marriage.rosegarden")
 }
 
 // Include version replacement

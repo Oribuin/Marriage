@@ -23,22 +23,22 @@ public class MarriageCommandWrapper extends RoseCommandWrapper {
 
     @Override
     public List<String> getCommandPackages() {
-        return null;
+        return List.of("xyz.oribuin.marriage.command.command");
     }
 
     @Override
     public boolean includeBaseCommand() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean includeHelpCommand() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean includeReloadCommand() {
-        return false;
+        return true;
     }
 
 }

@@ -4,12 +4,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import dev.rosewood.rosegarden.RosePlugin;
 import dev.rosewood.rosegarden.manager.Manager;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import xyz.oribuin.marriage.manager.ConfigurationManager.Setting;
-import xyz.oribuin.marriage.model.MarriagePair;
+import xyz.oribuin.marriage.model.Couple;
 import xyz.oribuin.marriage.model.Partner;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -29,12 +30,13 @@ public class MarriageManager extends Manager {
 
     @Override
     public void reload() {
-
+        this.rosePlugin.getManager(DataManager.class).loadPairs();
     }
 
     @Override
     public void disable() {
-
+        this.requests.cleanUp();
+        this.rosePlugin.getManager(DataManager.class).getCachedPairs().clear();
     }
 
     /**
@@ -42,7 +44,7 @@ public class MarriageManager extends Manager {
      *
      * @param pair The pair to check
      */
-    public void send(@NotNull MarriagePair pair) {
+    public void propose(@NotNull Couple pair) {
         this.requests.put(pair.getPrimary().getUUID(), pair.getSecondary().getUUID());
     }
 
@@ -51,7 +53,7 @@ public class MarriageManager extends Manager {
      *
      * @param pair The pair to remove
      */
-    public void deny(@NotNull MarriagePair pair) {
+    public void deny(@NotNull Couple pair) {
         this.requests.invalidate(pair.getPrimary().getUUID());
     }
 
@@ -70,7 +72,7 @@ public class MarriageManager extends Manager {
      *
      * @param pair The pair to accept
      */
-    public void marry(@NotNull MarriagePair pair) {
+    public void marry(@NotNull Couple pair) {
         this.rosePlugin.getManager(DataManager.class).create(pair);
         this.requests.invalidate(pair.getPrimary().getUUID());
     }
@@ -80,7 +82,7 @@ public class MarriageManager extends Manager {
      *
      * @param pair The pair to divorce
      */
-    public void divorce(@NotNull MarriagePair pair) {
+    public void divorce(@NotNull Couple pair) {
         this.rosePlugin.getManager(DataManager.class).delete(pair);
     }
 
@@ -91,10 +93,10 @@ public class MarriageManager extends Manager {
      * @return The marriage pair
      */
     @NotNull
-    public List<MarriagePair> getRequests(@NotNull UUID target) {
+    public List<Couple> getRequests(@NotNull UUID target) {
         return this.requests.asMap().values().stream()
                 .filter(uuid -> uuid.equals(target))
-                .map(uuid -> new MarriagePair(uuid, target))
+                .map(uuid -> new Couple(uuid, target))
                 .collect(Collectors.toList());
     }
 
@@ -111,18 +113,37 @@ public class MarriageManager extends Manager {
     }
 
     /**
+     * Get a marriage pair from two players
+     *
+     * @param primary   The primary player
+     * @param secondary The secondary player
+     * @return The marriage pair
+     */
+    @Nullable
+    public Couple getCouple(@NotNull UUID primary, @NotNull UUID secondary) {
+        return this.rosePlugin.getManager(DataManager.class).getCachedPairs()
+                .stream()
+                .filter(pair -> pair.isMarried(primary, secondary))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
      * Get all the marriages a player has
      *
      * @param uuid The uuid to check
      * @return The marriages
      */
     @NotNull
-    public List<MarriagePair> getMarriages(@NotNull UUID uuid) {
+    public List<Couple> getMarriages(@NotNull UUID uuid) {
         return this.rosePlugin.getManager(DataManager.class).getCachedPairs()
                 .stream()
                 .filter(pair -> pair.isEither(uuid))
                 .collect(Collectors.toList());
     }
 
+    public void removeRequest(@NotNull UUID uuid) {
+        this.requests.invalidate(uuid);
+    }
 
 }
